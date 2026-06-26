@@ -1,0 +1,37 @@
+{
+  "timestamp": "2026-05-06 21:29:54",
+  "device": "cpu",
+  "metrics": {
+    "accuracy": 0.94775,
+    "far": 0.0525,
+    "frr": 0.052,
+    "eer": 0.05225,
+    "eer_threshold": 0.44434443444344435,
+    "threshold": 0.44434443444344435,
+    "genuine_mean": 0.8277543938376614,
+    "impostor_mean": 0.20700128972411563,
+    "score_separation": 0.6207531041135457,
+    "genuine_std": 0.12057087686180011,
+    "impostor_std": 0.13973512027492951,
+    "num_genuine": 2000,
+    "num_impostor": 2000
+  },
+  "vault_results": {
+    "tar": 0.93,
+    "trr": 0.98,
+    "genuine_unlocks": 93,
+    "genuine_total": 100,
+    "impostor_rejects": 98,
+    "impostor_total": 100
+  },
+  "all_targets_met": false,
+  "targets": {
+    "accuracy": 0.985,
+    "far": 0.02,
+    "frr": 0.04,
+    "eer": 0.03,
+    "vault_tar": 0.95,
+    "vault_trr": 0.98
+  },
+  "total_time_seconds": 49.45474934577942
+}

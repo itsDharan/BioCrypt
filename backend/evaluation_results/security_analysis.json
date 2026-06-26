@@ -1,0 +1,69 @@
+{
+  "template_inversion": {
+    "total_vault_points": 360,
+    "genuine_points": 40,
+    "chaff_points": 320,
+    "security_bits": 177.3,
+    "brute_force_combinations": "230699452799567694621313086413825231520929535044290095",
+    "random_attack_success_rate": 0.0,
+    "passed": true
+  },
+  "unlinkability": {
+    "unique_vaults": 50,
+    "total_enrollments": 50,
+    "unique_ratio": 1.0,
+    "avg_vault_overlap": 0.0,
+    "passed": "True"
+  },
+  "irreversibility": {
+    "hash_algorithm": "SHA-256",
+    "hash_length_bits": 256,
+    "collision_test_passed": true,
+    "passed": true
+  },
+  "revocability": {
+    "enrollment_worked": true,
+    "revocation_worked": true,
+    "post_revoke_rejected": true,
+    "mode": "mock",
+    "passed": true
+  },
+  "encryption_integrity": {
+    "algorithm": "AES-256-GCM",
+    "correct_decrypt": true,
+    "tamper_detected": true,
+    "passed": true
+  },
+  "threat_model": {
+    "Spoofing": {
+      "threat": "Attacker presents fake biometrics (photo, prosthetic iris)",
+      "mitigation": "Multi-modal fusion (face+iris), liveness detection required",
+      "residual_risk": "Medium (no liveness detection currently implemented)"
+    },
+    "Tampering": {
+      "threat": "Attacker modifies stored vault data or blockchain records",
+      "mitigation": "AES-256-GCM integrity tags, blockchain immutability, SHA-256 vault hash",
+      "residual_risk": "Low (blockchain consensus prevents modification)"
+    },
+    "Repudiation": {
+      "threat": "User denies authentication action",
+      "mitigation": "Blockchain event logging (CredentialStored, CredentialRevoked events)",
+      "residual_risk": "Low (immutable audit trail)"
+    },
+    "Information Disclosure": {
+      "threat": "Raw biometric templates leaked",
+      "mitigation": "Fuzzy vault protection, AES-256-GCM + ECC-ECIES hybrid encryption",
+      "residual_risk": "Very low (templates never stored in cleartext)"
+    },
+    "Denial of Service": {
+      "threat": "Attacker prevents legitimate users from authenticating",
+      "mitigation": "IPFS distributed storage (no single point of failure), local mock fallback",
+      "residual_risk": "Medium (blockchain node availability)"
+    },
+    "Elevation of Privilege": {
+      "threat": "Attacker bypasses authentication to gain unauthorized access",
+      "mitigation": "Dual-gate auth (cosine + vault), ECC key possession requirement",
+      "residual_risk": "Low (multiple independent verification layers)"
+    }
+  }
+}

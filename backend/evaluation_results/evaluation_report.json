@@ -1,0 +1,54 @@
+{
+  "timestamp": "2026-05-07 16:50:28",
+  "device": "cpu",
+  "metrics": {
+    "accuracy": 0.9695,
+    "far": 0.0305,
+    "frr": 0.0305,
+    "eer": 0.0305,
+    "eer_threshold": 0.48444844484448446,
+    "threshold": 0.48444844484448446,
+    "d_prime": 4.708193733008787,
+    "min_dcf": 0.001535,
+    "genuine_mean": 0.7069344105719807,
+    "impostor_mean": 0.2948269916951881,
+    "score_separation": 0.4121074188767926,
+    "genuine_std": 0.08717649107140457,
+    "impostor_std": 0.08788175753086865,
+    "num_genuine": 2000,
+    "num_impostor": 2000
+  },
+  "metrics_max_accuracy": {
+    "accuracy": 0.9745,
+    "far": 0.0165,
+    "frr": 0.0345,
+    "threshold": 0.508950895089509
+  },
+  "d_prime": 4.708193733008787,
+  "min_dcf": 0.001535,
+  "bootstrap_eer": {
+    "eer_mean": 0.029988,
+    "eer_std": 0.0028436518774280373,
+    "eer_lower": 0.024368750000000005,
+    "eer_upper": 0.0355
+  },
+  "score_normalization": true,
+  "vault_results": {
+    "tar": 0.95,
+    "trr": 1.0,
+    "genuine_unlocks": 95,
+    "genuine_total": 100,
+    "impostor_rejects": 100,
+    "impostor_total": 100
+  },
+  "all_targets_met": false,
+  "targets": {
+    "accuracy": 0.985,
+    "far": 0.02,
+    "frr": 0.04,
+    "eer": 0.03,
+    "vault_tar": 0.95,
+    "vault_trr": 0.98
+  },
+  "total_time_seconds": 903.4501783847809
+}

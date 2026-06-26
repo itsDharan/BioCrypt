@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Multimodal Biometric Auth Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', system-ui, sans-serif;
+      color: #e2e8f0;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      background: #070b14;
+    }
+
+    /* Background Video */
+    .background-video {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -2;
+      object-fit: cover;
+      opacity: 0.35;
+    }
+
+    .video-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      background: linear-gradient(180deg, rgba(7,11,20,0.6) 0%, rgba(15,23,42,0.75) 50%, rgba(7,11,20,0.85) 100%);
+    }
+
+    /* Floating glow accents on top of video */
+    .glow-orb {
+      position: fixed;
+      border-radius: 50%;
+      filter: blur(100px);
+      z-index: -1;
+      pointer-events: none;
+      animation: orbFloat 10s ease-in-out infinite alternate;
+    }
+    .glow-orb.orb1 { width: 400px; height: 400px; background: rgba(99,102,241,0.12); top: -100px; left: -80px; }
+    .glow-orb.orb2 { width: 300px; height: 300px; background: rgba(56,189,248,0.08); bottom: -50px; right: -60px; animation-delay: 3s; animation-duration: 14s; }
+    @keyframes orbFloat { 0%{transform:translateY(0) scale(1)} 100%{transform:translateY(-30px) scale(1.05)} }
+
+    /* Header */
+    .header {
+      background: linear-gradient(135deg, rgba(30,58,95,0.65) 0%, rgba(15,23,42,0.7) 50%, rgba(26,26,46,0.65) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+      padding: 36px 32px 32px;
+      text-align: center;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: -1px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,0.5), rgba(56,189,248,0.5), transparent);
+    }
+
+    .header h1 {
+      font-size: 1.85rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #c7d2fe, #818cf8, #38bdf8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+      letter-spacing: -0.3px;
+    }
+
+    .header p {
+      font-size: 0.85rem;
+      color: #64748b;
+      letter-spacing: 1px;
+    }
+
+    /* Container */
+    .container {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 32px 24px 60px;
+      position: relative;
+    }
+
+    /* Cards */
+    .card {
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(99, 102, 241, 0.12);
+      border-radius: 20px;
+      padding: 28px;
+      margin-bottom: 24px;
+      transition: border-color 0.4s ease, box-shadow 0.4s ease, transform 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(99,102,241,0.3), transparent);
+      opacity: 0;
+      transition: opacity 0.4s;
+    }
+
+    .card:hover {
+      border-color: rgba(99, 102, 241, 0.25);
+      box-shadow: 0 8px 40px rgba(99, 102, 241, 0.06);
+      transform: translateY(-2px);
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card h2 {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #e0e7ff;
+      margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .card h2 .badge {
+      font-size: 0.65rem;
+      font-weight: 700;
+      background: rgba(99, 102, 241, 0.15);
+      color: #818cf8;
+      padding: 4px 12px;
+      border-radius: 20px;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    /* Form Elements */
+    .row {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .row>div {
+      flex: 1;
+      min-width: 200px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: 600;
+      font-size: 0.78rem;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    input[type="text"],
+    input[type="file"],
+    textarea {
+      width: 100%;
+      border-radius: 12px;
+      border: 1px solid rgba(99, 102, 241, 0.18);
+      background: rgba(10, 14, 26, 0.6);
+      color: #e2e8f0;
+      padding: 11px 14px;
+      font-size: 0.88rem;
+      font-family: inherit;
+      transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+    }
+
+    input:focus,
+    textarea:focus {
+      outline: none;
+      border-color: #818cf8;
+      box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+      background: rgba(10, 14, 26, 0.8);
+    }
+
+    textarea {
+      min-height: 80px;
+      resize: vertical;
+    }
+
+    input[type="file"] {
+      cursor: pointer;
+      padding: 9px 12px;
+    }
+
+    input[type="file"]::file-selector-button {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: white;
+      border: none;
+      padding: 7px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      margin-right: 12px;
+      transition: box-shadow 0.25s;
+    }
+
+    input[type="file"]::file-selector-button:hover {
+      box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    }
+
+    /* Buttons */
+    button {
+      background: linear-gradient(135deg, #4f46e5, #6366f1);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 0.88rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+
+    button::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,255,255,0.1), transparent);
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    button:hover {
+      background: linear-gradient(135deg, #4338ca, #4f46e5);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
+    }
+
+    button:hover::after { opacity: 1; }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background: rgba(99, 102, 241, 0.12);
+      color: #a5b4fc;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(99, 102, 241, 0.22);
+      box-shadow: none;
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #059669, #10b981);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #047857, #059669);
+      box-shadow: 0 8px 24px rgba(16, 185, 129, 0.25);
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    /* Key display */
+    .key-display {
+      margin-top: 16px;
+      padding: 16px;
+      background: rgba(5, 150, 105, 0.06);
+      border: 1px solid rgba(16, 185, 129, 0.15);
+      border-radius: 14px;
+      animation: fadeSlideIn 0.4s ease;
+    }
+
+    .key-display textarea {
+      border-color: rgba(16, 185, 129, 0.25);
+      background: rgba(10, 14, 26, 0.7);
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+    }
+
+    .key-display small {
+      color: #6ee7b7;
+      font-size: 0.78rem;
+      display: block;
+      margin-top: 8px;
+    }
+
+    /* Advanced toggle */
+    .advanced-toggle {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      color: #64748b;
+      font-size: 0.82rem;
+      font-weight: 500;
+      margin-top: 10px;
+      user-select: none;
+      transition: color 0.2s;
+    }
+
+    .advanced-toggle:hover {
+      color: #94a3b8;
+    }
+
+    .advanced-toggle .arrow {
+      transition: transform 0.25s ease;
+      font-size: 0.7rem;
+    }
+
+    .advanced-toggle.open .arrow {
+      transform: rotate(90deg);
+    }
+
+    .advanced-content {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.35s ease, opacity 0.3s ease;
+      opacity: 0;
+    }
+
+    .advanced-content.open {
+      max-height: 300px;
+      opacity: 1;
+      margin-top: 12px;
+    }
+
+    .auto-key-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.08);
+      color: #34d399;
+      padding: 8px 16px;
+      border-radius: 12px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin-top: 6px;
+      border: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    /* Result */
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: rgba(10, 14, 26, 0.7);
+      border: 1px solid rgba(99, 102, 241, 0.1);
+      color: #e2e8f0;
+      padding: 20px;
+      border-radius: 14px;
+      overflow-x: auto;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      line-height: 1.7;
+      max-height: 420px;
+      overflow-y: auto;
+      transition: border-color 0.4s;
+    }
+
+    pre.result-success { border-color: rgba(34, 197, 94, 0.3); }
+    pre.result-fail { border-color: rgba(239, 68, 68, 0.3); }
+
+    /* Status indicator */
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 6px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .status-dot.green {
+      background: #10b981;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.5);
+    }
+
+    .status-dot.blue {
+      background: #6366f1;
+      box-shadow: 0 0 10px rgba(99, 102, 241, 0.5);
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Loading spinner */
+    .spinner {
+      display: none;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.2);
+      border-top: 2px solid white;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      margin-left: 8px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .loading .spinner {
+      display: inline-block;
+    }
+
+    .loading {
+      pointer-events: none;
+      opacity: 0.65;
+    }
+
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.2); border-radius: 3px; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .header h1 { font-size: 1.4rem; }
+      .container { padding: 20px 14px 40px; }
+      .row { flex-direction: column; }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Background Video -->
+  <video class="background-video" autoplay loop muted playsinline>
+    <source src="/static/c_f_c_e_a_ba_f_a_a_mp_.mp4" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+  <div class="video-overlay"></div>
+  <div class="glow-orb orb1"></div>
+  <div class="glow-orb orb2"></div>
+
+  <div class="header">
+    <h1>BioCrypt</h1>
+  </div>
+
+  <div class="container">
+    <!-- Enroll -->
+    <section class="card" id="enroll-card">
+      <h2><span class="status-dot green"></span> 1. Enroll User <span class="badge">STEP 1</span></h2>
+      <div class="row">
+        <div>
+          <label for="enroll-user-id">User ID</label>
+          <input id="enroll-user-id" type="text" placeholder="alice@example.com" />
+        </div>
+        <div>
+          <label for="enroll-face">Face Image</label>
+          <input id="enroll-face" type="file" accept="image/*" />
+        </div>
+        <div>
+          <label for="enroll-iris">Iris/Eye Image</label>
+          <input id="enroll-iris" type="file" accept="image/*" />
+        </div>
+      </div>
+      <div class="actions">
+        <button id="btn-enroll" onclick="enrollUser()">
+          Enroll User <span class="spinner"></span>
+        </button>
+      </div>
+      <div class="key-display" id="key-display" style="display:none;">
+        <label for="enroll-private-key">🔑 ECC Private Key (auto-saved for future logins)</label>
+        <textarea id="enroll-private-key" readonly placeholder="Key will appear here after enrollment"></textarea>
+        <small>✅ This key is securely stored. You won't need to enter it for future authentications.</small>
+        <div style="margin-top:10px;">
+          <button type="button" class="btn-secondary" onclick="copyPrivateKey()">Copy Key to Clipboard</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Authenticate -->
+    <section class="card" id="auth-card">
+      <h2><span class="status-dot blue"></span> 2. Authenticate User <span class="badge">STEP 2</span></h2>
+      <div class="row">
+        <div>
+          <label for="auth-user-id">User ID</label>
+          <input id="auth-user-id" type="text" placeholder="alice@example.com" />
+        </div>
+        <div>
+          <label for="auth-face">Face Image</label>
+          <input id="auth-face" type="file" accept="image/*" />
+        </div>
+        <div>
+          <label for="auth-iris">Iris/Eye Image</label>
+          <input id="auth-iris" type="file" accept="image/*" />
+        </div>
+      </div>
+      <div class="auto-key-badge">
+        🔑 ECC key is auto-retrieved from secure storage — no manual entry needed
+      </div>
+      <div class="advanced-toggle" onclick="toggleAdvanced()">
+        <span class="arrow">▶</span> Advanced: Manually provide ECC key
+      </div>
+      <div class="advanced-content" id="advanced-key">
+        <label for="auth-key">ECC Private Key (optional override)</label>
+        <textarea id="auth-key" placeholder="Leave empty to auto-retrieve, or paste a key to override"></textarea>
+        <small style="color:#94a3b8;">Only use this if you want to override the stored key.</small>
+      </div>
+      <div class="actions" style="margin-top:14px;">
+        <button id="btn-auth" class="btn-success" onclick="authenticateUser()">
+          Authenticate <span class="spinner"></span>
+        </button>
+      </div>
+    </section>
+
+    <!-- Result -->
+    <section class="card">
+      <h2>📋 Result</h2>
+      <pre id="result">No action yet. Start by enrolling a user above.</pre>
+    </section>
+  </div>
+
+  <script>
+    const resultEl = document.getElementById('result');
+
+    function toggleAdvanced() {
+      const toggle = document.querySelector('.advanced-toggle');
+      const content = document.getElementById('advanced-key');
+      toggle.classList.toggle('open');
+      content.classList.toggle('open');
+    }
+
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      if (loading) btn.classList.add('loading');
+      else btn.classList.remove('loading');
+    }
+
+    async function apiRequest(path, method = 'GET', body = null) {
+      try {
+        const opts = { method };
+        if (body) opts.body = body;
+        const response = await fetch(path, opts);
+        const text = await response.text();
+        let data;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (jsonError) {
+          const message = `Invalid JSON response from ${path}: ${text || '<empty response>'}`;
+          throw new Error(message);
+        }
+        if (!response.ok) throw new Error(data?.detail || JSON.stringify(data));
+        return data;
+      } catch (error) {
+        throw new Error(error.message || String(error));
+      }
+    }
+
+    function showResult(title, data) {
+      resultEl.textContent = `${title}\n\n${JSON.stringify(data, null, 2)}`;
+      resultEl.className = '';
+      if (data?.authenticated === true) resultEl.classList.add('result-success');
+      else if (data?.authenticated === false || data?.error) resultEl.classList.add('result-fail');
+    }
+
+    async function enrollUser() {
+      const userId = document.getElementById('enroll-user-id').value.trim();
+      const faceFile = document.getElementById('enroll-face').files[0];
+      const irisFile = document.getElementById('enroll-iris').files[0];
+      if (!userId || !faceFile || !irisFile) {
+        showResult('⚠️ Error', { message: 'Please fill all enrollment fields.' });
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('user_id', userId);
+      formData.append('face_image', faceFile);
+      formData.append('iris_image', irisFile);
+
+      setLoading('btn-enroll', true);
+      try {
+        const data = await apiRequest('/enroll', 'POST', formData);
+        showResult('✅ Enrollment Result', data);
+        const privateKey = data.ecc_private_key || data.private_key || data.enrolled_private_key || data.key;
+        if (privateKey) {
+          document.getElementById('enroll-private-key').value = privateKey;
+          document.getElementById('key-display').style.display = 'block';
+          document.getElementById('auth-user-id').value = userId;
+        } else {
+          showResult('⚠️ Enrollment Warning', {
+            message: 'Enrollment succeeded, but the private key was not returned by the server.',
+            data,
+          });
+        }
+      } catch (err) {
+        showResult('❌ Enrollment Error', { error: err.message });
+      } finally {
+        setLoading('btn-enroll', false);
+      }
+    }
+
+    function copyPrivateKey() {
+      const key = document.getElementById('enroll-private-key').value;
+      if (!key) {
+        showResult('⚠️ Error', { message: 'No enrolled private key is available to copy.' });
+        return;
+      }
+      navigator.clipboard.writeText(key).then(() => {
+        showResult('📋 Copied', { message: 'Private key copied to clipboard.' });
+      }).catch(() => {
+        document.getElementById('auth-key').value = key;
+        showResult('📋 Copied', { message: 'Private key copied to auth field.' });
+      });
+    }
+
+    async function authenticateUser() {
+      const userId = document.getElementById('auth-user-id').value.trim();
+      const faceFile = document.getElementById('auth-face').files[0];
+      const irisFile = document.getElementById('auth-iris').files[0];
+      const privateKey = document.getElementById('auth-key').value.trim();
+
+      if (!userId || !faceFile || !irisFile) {
+        showResult('⚠️ Error', { message: 'Please provide User ID, Face Image, and Iris Image.' });
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('user_id', userId);
+      formData.append('face_image', faceFile);
+      formData.append('iris_image', irisFile);
+      formData.append('ecc_private_key', privateKey);
+
+      setLoading('btn-auth', true);
+      try {
+        const data = await apiRequest('/authenticate', 'POST', formData);
+        const icon = data.authenticated ? '✅' : '❌';
+        showResult(`${icon} Authentication Result`, data);
+      } catch (err) {
+        showResult('❌ Authentication Error', { error: err.message });
+      } finally {
+        setLoading('btn-auth', false);
+      }
+    }
+
+    async function fetchStatus() {
+      try {
+        const data = await apiRequest('/status');
+        showResult('⚙️ System Status', data);
+      } catch (err) {
+        showResult('❌ Status Error', { error: err.message });
+      }
+    }
+
+    async function fetchMetrics() {
+      try {
+        const data = await apiRequest('/metrics');
+        showResult('📊 Target Metrics', data);
+      } catch (err) {
+        showResult('❌ Metrics Error', { error: err.message });
+      }
+    }
+  </script>
+</body>
+
+</html>
